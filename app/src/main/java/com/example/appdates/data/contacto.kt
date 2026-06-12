@@ -6,5 +6,8 @@ data class Contacto(
     val fotos: List<Int>,
     val direccion: String,
     val descripcion: String,
-    val universo: String
+    val universo: String,
+
+    val vozRes: Int,
+    val musicaRes: Int
 )

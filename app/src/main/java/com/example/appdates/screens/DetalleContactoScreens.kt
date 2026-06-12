@@ -36,6 +36,20 @@ import com.example.appdates.ui.theme.PinkPrimary
 import com.example.appdates.data.listaContactos
 import androidx.compose.runtime.*
 import androidx.compose.foundation.clickable
+import android.media.MediaPlayer
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.VolumeOff
+import androidx.compose.material.icons.filled.ArrowBackIosNew
+import androidx.compose.material.icons.filled.ArrowForwardIos
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.material.icons.filled.Dialpad
+
 
 
 @Composable
@@ -58,10 +72,51 @@ fun DetalleContactoScreen(
         it.nombre == nombre
     }
 
+    val vozRes = contacto?.vozRes
+
+    val musicaRes = contacto?.musicaRes
+
+    var musicaActiva by remember {
+        mutableStateOf(true)
+    }
+
     val fotos = contacto?.fotos ?: emptyList()
 
     var indiceImagen by remember {
         mutableStateOf(0)
+    }
+
+    var musicPlayer by remember {
+        mutableStateOf<MediaPlayer?>(null)
+    }
+
+    DisposableEffect(nombre) {
+
+        val voicePlayer =
+            vozRes?.let {
+                MediaPlayer.create(context, it)
+            }
+
+        voicePlayer?.start()
+
+        musicPlayer?.release()
+
+        musicPlayer =
+            musicaRes?.let {
+                MediaPlayer.create(context, it)
+            }
+
+        musicPlayer?.isLooping = true
+
+        if (musicaActiva) {
+            musicPlayer?.start()
+        }
+
+        onDispose {
+
+            voicePlayer?.release()
+            musicPlayer?.release()
+        }
     }
 
     val permissionLauncher =
@@ -92,17 +147,63 @@ fun DetalleContactoScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+
+                Brush.verticalGradient(
+
+                    colors = listOf(
+
+                        Color(0xFFFFE4F1),
+
+                        Color(0xFFE8D5FF)
+
+                    )
+
+                )
+
+            )
             .padding(16.dp)
     ) {
 
-        IconButton(
-            onClick = onBack
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Regresar"
-            )
+
+            IconButton(
+                onClick = onBack
+            ) {
+
+                Icon(
+                    imageVector =
+                        Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Regresar"
+                )
+            }
+
+            IconButton(
+                onClick = {
+
+                    musicaActiva = !musicaActiva
+
+                    if (musicaActiva) {
+                        musicPlayer?.start()
+                    } else {
+                        musicPlayer?.pause()
+                    }
+                }
+            ) {
+
+                Icon(
+                    imageVector =
+                        if (musicaActiva)
+                            Icons.Default.VolumeUp
+                        else
+                            Icons.Default.VolumeOff,
+
+                    contentDescription = "Música"
+                )
+            }
         }
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -111,45 +212,63 @@ fun DetalleContactoScreen(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
 
-            Image(
-                painter = painterResource(fotos[indiceImagen]),
-                contentDescription = nombre,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(280.dp)
-                    .clip(RoundedCornerShape(24.dp)),
-                contentScale = ContentScale.Crop
-            )
+            AnimatedContent(
+                targetState = indiceImagen,
+                label = "cambioImagen"
+            ) { imagenActual ->
+
+                Image(
+                    painter = painterResource(
+                        fotos[imagenActual]
+                    ),
+                    contentDescription = nombre,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(280.dp)
+                        .clip(
+                            RoundedCornerShape(24.dp)
+                        ),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Spacer(modifier = Modifier.height(12.dp))
 
             Row {
 
-                Text(
-                    text = "◀",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.clickable {
+                IconButton(
+                    onClick = {
 
                         if (indiceImagen > 0) {
                             indiceImagen--
                         }
 
                     }
-                )
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowBackIosNew,
+                        contentDescription = "Anterior"
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(32.dp))
 
-                Text(
-                    text = "▶",
-                    style = MaterialTheme.typography.headlineMedium,
-                    modifier = Modifier.clickable {
+                IconButton(
+                    onClick = {
 
                         if (indiceImagen < fotos.lastIndex) {
                             indiceImagen++
                         }
 
                     }
-                )
+                ) {
+
+                    Icon(
+                        imageVector = Icons.Default.ArrowForwardIos,
+                        contentDescription = "Siguiente"
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))
@@ -191,66 +310,53 @@ fun DetalleContactoScreen(
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = descripcion
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Text(
-            text = "📞 $telefono"
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Row(
+        Card(
+            colors = CardDefaults.cardColors(
+                containerColor = Color(0xFFFFE4F1)
+            ),
+            shape = RoundedCornerShape(20.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
 
-            Text(
-                text = "📍 $direccion",
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(
-                onClick = {
-
-                    val uri = Uri.parse(
-                        "geo:0,0?q=${Uri.encode(direccion)}"
-                    )
-
-                    val intent = Intent(
-                        Intent.ACTION_VIEW,
-                        uri
-                    )
-
-                    intent.setPackage(
-                        "com.google.android.apps.maps"
-                    )
-
-                    if (
-                        intent.resolveActivity(
-                            context.packageManager
-                        ) != null
-                    ) {
-
-                        context.startActivity(intent)
-
-                    } else {
-
-                        Toast.makeText(
-                            context,
-                            "Google Maps no encontrado",
-                            Toast.LENGTH_SHORT
-                        ).show()
-
-                    }
-                }
+            Column(
+                modifier = Modifier.padding(16.dp)
             ) {
 
-                Icon(
-                    imageVector = Icons.Default.LocationOn,
-                    contentDescription = "Abrir mapa"
+                Text(
+                    text = "Sobre mí",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(
+                    modifier = Modifier.height(8.dp)
+                )
+
+                Text(
+                    text = descripcion
+                )
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                HorizontalDivider()
+
+                Spacer(
+                    modifier = Modifier.height(16.dp)
+                )
+
+                Text(
+                    text = "📞 $telefono",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+
+                Spacer(
+                    modifier = Modifier.height(12.dp)
+                )
+
+                Text(
+                    text = "📍 $direccion",
+                    style = MaterialTheme.typography.bodyLarge
                 )
             }
         }
@@ -281,7 +387,7 @@ fun DetalleContactoScreen(
                 ) {
 
                     Icon(
-                        imageVector = Icons.Default.Phone,
+                        imageVector = Icons.Default.Dialpad,
                         contentDescription = "Abrir marcador"
                     )
                 }
