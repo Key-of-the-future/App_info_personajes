@@ -49,6 +49,11 @@ import androidx.compose.material.icons.filled.ArrowForwardIos
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.material.icons.filled.Dialpad
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.foundation.layout.offset
+import androidx.compose.ui.text.style.TextAlign
 
 
 
@@ -63,14 +68,14 @@ fun DetalleContactoScreen(
 
     onBack: () -> Unit
 
-)
-
-{
+) {
     val context = LocalContext.current
 
     val contacto = listaContactos.find {
         it.nombre == nombre
     }
+
+    val imageOffsetY = contacto?.imageOffsetY ?: 0
 
     val vozRes = contacto?.vozRes
 
@@ -144,9 +149,12 @@ fun DetalleContactoScreen(
             }
         }
 
+    val scrollState = rememberScrollState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
+            .verticalScroll(scrollState)
             .background(
 
                 Brush.verticalGradient(
@@ -217,247 +225,256 @@ fun DetalleContactoScreen(
                 label = "cambioImagen"
             ) { imagenActual ->
 
-                Image(
-                    painter = painterResource(
-                        fotos[imagenActual]
-                    ),
-                    contentDescription = nombre,
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(280.dp)
-                        .clip(
-                            RoundedCornerShape(24.dp)
+                        .height(400.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                ) {
+
+                    Image(
+                        painter = painterResource(
+                            fotos[imagenActual]
                         ),
-                    contentScale = ContentScale.Crop
-                )
-            }
+                        contentDescription = nombre,
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row {
-
-                IconButton(
-                    onClick = {
-
-                        if (indiceImagen > 0) {
-                            indiceImagen--
-                        }
-
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.ArrowBackIosNew,
-                        contentDescription = "Anterior"
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(32.dp))
-
-                IconButton(
-                    onClick = {
-
-                        if (indiceImagen < fotos.lastIndex) {
-                            indiceImagen++
-                        }
-
-                    }
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.ArrowForwardIos,
-                        contentDescription = "Siguiente"
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row {
-
-                fotos.forEachIndexed { index, _ ->
-
-                    Box(
                         modifier = Modifier
-                            .padding(4.dp)
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(
+                            .fillMaxWidth()
+                            .wrapContentHeight()
+                            .offset(
+                                y = imageOffsetY.dp
+                            ),
 
-                                if (index == indiceImagen)
-                                    MaterialTheme.colorScheme.primary
-                                else
-                                    Color.LightGray
-
-                            )
+                        contentScale = ContentScale.FillWidth
                     )
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(16.dp))
 
-        Text(
-            text = nombre,
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold
-        )
+                Row {
 
-        Text(
-            text = universo,
-            style = MaterialTheme.typography.titleMedium
-        )
+                    IconButton(
+                        onClick = {
 
-        Spacer(modifier = Modifier.height(16.dp))
+                            if (indiceImagen > 0) {
+                                indiceImagen--
+                            }
 
-        Card(
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFFFFE4F1)
-            ),
-            shape = RoundedCornerShape(20.dp),
-            modifier = Modifier.fillMaxWidth()
-        ) {
+                        }
+                    ) {
 
-            Column(
-                modifier = Modifier.padding(16.dp)
-            ) {
-
-                Text(
-                    text = "Sobre mí",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-
-                Spacer(
-                    modifier = Modifier.height(8.dp)
-                )
-
-                Text(
-                    text = descripcion
-                )
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
-
-                HorizontalDivider()
-
-                Spacer(
-                    modifier = Modifier.height(16.dp)
-                )
-
-                Text(
-                    text = "📞 $telefono",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-
-                Spacer(
-                    modifier = Modifier.height(12.dp)
-                )
-
-                Text(
-                    text = "📍 $direccion",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                FloatingActionButton(
-                    onClick = {
-
-                        val intent = Intent(
-                            Intent.ACTION_DIAL,
-                            Uri.parse("tel:$telefono")
+                        Icon(
+                            imageVector = Icons.Default.ArrowBackIosNew,
+                            contentDescription = "Anterior"
                         )
+                    }
 
-                        context.startActivity(intent)
-                    },
-                    containerColor = PinkPrimary,
-                    contentColor = Color.White
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    IconButton(
+                        onClick = {
+
+                            if (indiceImagen < fotos.lastIndex) {
+                                indiceImagen++
+                            }
+
+                        }
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.Default.ArrowForwardIos,
+                            contentDescription = "Siguiente"
+                        )
+                    }
+                }
+
+
+
+                Row {
+
+                    fotos.forEachIndexed { index, _ ->
+
+                        Box(
+                            modifier = Modifier
+                                .padding(4.dp)
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(
+
+                                    if (index == indiceImagen)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        Color.LightGray
+
+                                )
+                        )
+                    }
+                }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = nombre,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Text(
+                text = universo,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Card(
+                colors = CardDefaults.cardColors(
+                    containerColor = Color(0xFFFFE4F1)
+                ),
+                shape = RoundedCornerShape(20.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+
+                Column(
+                    modifier = Modifier.padding(16.dp)
                 ) {
 
-                    Icon(
-                        imageVector = Icons.Default.Dialpad,
-                        contentDescription = "Abrir marcador"
+                    Text(
+                        text = "Sobre mí:",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(8.dp)
+                    )
+
+                    Text(
+                        text = descripcion,
+                        textAlign = TextAlign.Justify
+                    )
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
+
+                    HorizontalDivider()
+
+                    Spacer(
+                        modifier = Modifier.height(16.dp)
+                    )
+
+                    Text(
+                        text = "📞 $telefono",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
+
+                    Spacer(
+                        modifier = Modifier.height(12.dp)
+                    )
+
+                    Text(
+                        text = "📍 $direccion",
+                        style = MaterialTheme.typography.bodyLarge
                     )
                 }
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = "Marcador",
-                    style = MaterialTheme.typography.labelSmall
-                )
             }
 
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
             ) {
 
-                FloatingActionButton(
-                    onClick = {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                        if (
-                            ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.CALL_PHONE
-                            ) == PackageManager.PERMISSION_GRANTED
-                        ) {
+                    FloatingActionButton(
+                        onClick = {
 
                             val intent = Intent(
-                                Intent.ACTION_CALL,
+                                Intent.ACTION_DIAL,
                                 Uri.parse("tel:$telefono")
                             )
 
                             context.startActivity(intent)
+                        },
+                        containerColor = PinkPrimary,
+                        contentColor = Color.White
+                    ) {
 
-                        } else {
+                        Icon(
+                            imageVector = Icons.Default.Dialpad,
+                            contentDescription = "Abrir marcador"
+                        )
+                    }
 
-                            permissionLauncher.launch(
-                                Manifest.permission.CALL_PHONE
-                            )
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
 
-                        }
-                    },
-                    containerColor = PinkPrimary,
-                    contentColor = Color.White
-                ) {
-
-                    Icon(
-                        imageVector = Icons.Default.Call,
-                        contentDescription = "Llamar"
+                    Text(
+                        text = "Marcador",
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
 
-                Text(
-                    text = "Llamar",
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
+                    FloatingActionButton(
+                        onClick = {
 
-                FloatingActionButton(
-                    onClick = {
+                            if (
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.CALL_PHONE
+                                ) == PackageManager.PERMISSION_GRANTED
+                            ) {
 
-                        val mensaje = """
+                                val intent = Intent(
+                                    Intent.ACTION_CALL,
+                                    Uri.parse("tel:$telefono")
+                                )
+
+                                context.startActivity(intent)
+
+                            } else {
+
+                                permissionLauncher.launch(
+                                    Manifest.permission.CALL_PHONE
+                                )
+
+                            }
+                        },
+                        containerColor = PinkPrimary,
+                        contentColor = Color.White
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.Default.Call,
+                            contentDescription = "Llamar"
+                        )
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text = "Llamar",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
+                    FloatingActionButton(
+                        onClick = {
+
+                            val mensaje = """
 ✨ Character Connect
 
 Personaje: $nombre
@@ -471,91 +488,92 @@ $descripcion
 📍 $direccion
 """.trimIndent()
 
-                        val intent = Intent(Intent.ACTION_SEND)
+                            val intent = Intent(Intent.ACTION_SEND)
 
-                        intent.type = "text/plain"
+                            intent.type = "text/plain"
 
-                        intent.putExtra(
-                            Intent.EXTRA_TEXT,
-                            mensaje
-                        )
-
-                        val chooser =
-                            Intent.createChooser(
-                                intent,
-                                "Compartir personaje vía"
+                            intent.putExtra(
+                                Intent.EXTRA_TEXT,
+                                mensaje
                             )
 
-                        context.startActivity(chooser)
-                    },
-                    containerColor = PinkPrimary,
-                    contentColor = Color.White
-                ) {
+                            val chooser =
+                                Intent.createChooser(
+                                    intent,
+                                    "Compartir personaje vía"
+                                )
 
-                    Icon(
-                        imageVector = Icons.Default.Share,
-                        contentDescription = "Compartir"
+                            context.startActivity(chooser)
+                        },
+                        containerColor = PinkPrimary,
+                        contentColor = Color.White
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.Default.Share,
+                            contentDescription = "Compartir"
+                        )
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text = "Compartir",
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
 
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = "Compartir",
-                    style = MaterialTheme.typography.labelSmall
-                )
-            }
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-
-                FloatingActionButton(
-                    onClick = {
-
-                        val uri = Uri.parse(
-                            "geo:0,0?q=${Uri.encode(direccion)}"
-                        )
-
-                        val intent = Intent(
-                            Intent.ACTION_VIEW,
-                            uri
-                        )
-
-                        intent.setPackage(
-                            "com.google.android.apps.maps"
-                        )
-
-                        if (
-                            intent.resolveActivity(
-                                context.packageManager
-                            ) != null
-                        ) {
-
-                            context.startActivity(intent)
-
-                        }
-                    },
-                    containerColor = PinkPrimary,
-                    contentColor = Color.White
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
-                    Icon(
-                        imageVector = Icons.Default.LocationOn,
-                        contentDescription = "Mapa"
+                    FloatingActionButton(
+                        onClick = {
+
+                            val uri = Uri.parse(
+                                "geo:0,0?q=${Uri.encode(direccion)}"
+                            )
+
+                            val intent = Intent(
+                                Intent.ACTION_VIEW,
+                                uri
+                            )
+
+                            intent.setPackage(
+                                "com.google.android.apps.maps"
+                            )
+
+                            if (
+                                intent.resolveActivity(
+                                    context.packageManager
+                                ) != null
+                            ) {
+
+                                context.startActivity(intent)
+
+                            }
+                        },
+                        containerColor = PinkPrimary,
+                        contentColor = Color.White
+                    ) {
+
+                        Icon(
+                            imageVector = Icons.Default.LocationOn,
+                            contentDescription = "Mapa"
+                        )
+                    }
+
+                    Spacer(
+                        modifier = Modifier.height(4.dp)
+                    )
+
+                    Text(
+                        text = "Mapa",
+                        style = MaterialTheme.typography.labelSmall
                     )
                 }
-
-                Spacer(
-                    modifier = Modifier.height(4.dp)
-                )
-
-                Text(
-                    text = "Mapa",
-                    style = MaterialTheme.typography.labelSmall
-                )
             }
         }
     }

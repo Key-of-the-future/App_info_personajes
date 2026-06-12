@@ -7,7 +7,7 @@ data class Contacto(
     val direccion: String,
     val descripcion: String,
     val universo: String,
-
+    val imageOffsetY: Int,
     val vozRes: Int,
     val musicaRes: Int
 )
